@@ -1,4 +1,4 @@
-# Project Title
+# WS2811 AVR driver and library
 
 AVR driver and minimal library to control WS2811 serially adressable LEDs.
 
