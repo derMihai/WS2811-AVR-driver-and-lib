@@ -1,5 +1,19 @@
 /*
  * ws2811_driver.S
+ *
+ * ==================================
+ * T0H / T1H
+ * ---------|
+ * 		    | T0L / T1L
+ * 		    |-----------
+ * <---- 20 cycles ---->
+ *
+ * At 16 MHz:	cycles / bit : 20
+ * 				cycles / T0H : 7
+ * 				cycles / T0L : 13
+ * 				cycles / T1H : 12
+ * 				cycles / T1L : 8
+ * ===================================
  */
 #include <avr/io.h>
 
@@ -7,192 +21,69 @@
 
 #define BUFS r22		// 2nd function argument, #leds
 #define DATA r18		// Data register
+#define BCNT r19        // bit counter
+
 #define PORT PORTB		// GPIO Port
 #define PPIN 0			// PORTx bit
 
-#define BCNT r26
 .section .text
-
 .global flush
 
 flush:
-    cli
-
     mov		XH,	R25
-	mov		XL,	R24
+    mov		XL,	R24
 
-    ldi     R23, 3
-    mul     BUFS, R23
-    mov     BUFS, R0
+    ldi		R23, 3
+    mul		BUFS, R23
+    mov		BUFS, R0
 
-next_byte: 				; Timings
-;   bit 7
-    sbi     PORT, PPIN  ; 2 +
-    ld      DATA, X+    ; 2
-    lsl     DATA        ; 1
-    brcc    b7_0        ; 1 2
+    ldi     BCNT, 8
+    ld      DATA, X+
 
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b7_0:
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b7_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b7_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 6
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b6_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b6_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b6_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b6_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 5
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b5_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b5_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b5_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b5_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 4
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b4_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b4_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b4_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b4_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 3
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b3_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b3_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b3_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b3_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 2
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b2_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b2_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b2_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b2_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 1
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b1_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b1_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b1_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b1_1:
-    rjmp    .+0         ; 2
-    nop                 ; 1
-    lsl     DATA        ; 1
-
-;   bit 0
-    sbi     PORT, PPIN  ; 2 +
-    nop                 ; 1
-    brcc    b0_0        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b0_0:
-    rjmp    .+0         ; 2
-    cbi     PORT, PPIN  ; 2 -
-    brcs    b0_1        ; 1 2
-
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-    rjmp    .+0         ; 2
-b0_1:
-    dec     BUFS        ; 1
-    breq    end         ; 1
-    rjmp    next_byte   ; 2
-end:
-    sei
-    ret
+	cli
+next_bit:				; Timings	Pin state
+    sbi     PORT, PPIN  ; 2			0
+    lsl     DATA        ; 1			1
+    brcc    bit_0       ; 1 2		1
+bit_1:
+	dec		BCNT		; 1			1
+	brne	cont_1		; 1 2		1
+	dec     BUFS        ; 1			1
+	breq	end_1		; 1 2		1
+	ld		DATA, X+	; 2			1
+    ldi     BCNT, 8		; 1			1
+    nop                 ; 1			1
+    cbi     PORT, PPIN  ; 2			1
+    rjmp	cont_1_2	; 2			0
+cont_1:
+	nop                 ; 1			1
+    rjmp    .+0         ; 2			1
+    rjmp    .+0         ; 2			1
+    cbi     PORT, PPIN  ; 2			1
+    rjmp    .+0         ; 2			0
+cont_1_2:
+    rjmp    .+0         ; 2			0
+    rjmp	next_bit	; 2			0
+bit_0:
+    rjmp    .+0         ; 2			1
+    cbi     PORT, PPIN  ; 2			1
+	dec		BCNT		; 1			0
+	brne	cont_0		; 1 2		0
+	dec		BUFS		; 1			0
+	breq	end_0		; 1 2		0
+	ld		DATA, X+	; 2			0
+	ldi     BCNT, 8		; 1			0
+    rjmp    .+0         ; 2			0
+	rjmp	next_bit	; 2			0
+cont_0:
+    rjmp    .+0         ; 2			0
+    rjmp    .+0         ; 2			0
+    rjmp    .+0         ; 2			0
+    rjmp    next_bit    ; 2			0
+end_1:
+    nop                 ; 1			1
+    rjmp    .+0         ; 2			1
+	cbi     PORT, PPIN  ; 2			1
+end_0:
+	sei					;			0
+	ret					;			0

@@ -14,10 +14,6 @@ Don't forget to choose your favorite GPIO port and pin in [ws2811_driver.S](src/
 
 Works only on 16 MHz AVR MCUs. Tested on the Mega328p MCU and WS2811 LED-string. Should also work on WS2812 since the programmed timings correspond to the WS2812 datasheet (WS2811 datasheet contained at the time lots of errors). 
 
-### TO-DOs:
-
-- Optimize for code size
-
 ## Library
 
 To be extended.
@@ -39,7 +35,7 @@ int main(void)
 	PORTB	&= ~(1 << PB0) ;
 
 	// set each color-component in every LED to maximum brigthness (white)
-	for(int i = 0; i < 20; i++){
+	for(int i = 0; i < LED_CNT; i++){
 		buff[i][RED_C] = 0xFF;
 		buff[i][BLU_C] = 0xFF; 
 		buff[i][GRN_C] = 0xFF; 
